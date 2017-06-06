@@ -1,0 +1,9 @@
+Click
+numpy
+pyparsing
+pytz
+cycler
+six
+functools32
+subprocess32
+matplotlib

@@ -1,0 +1,7 @@
+MarkovPatternTool.egg-info/.dropbox.attr
+MarkovPatternTool.egg-info/PKG-INFO
+MarkovPatternTool.egg-info/SOURCES.txt
+MarkovPatternTool.egg-info/dependency_links.txt
+MarkovPatternTool.egg-info/entry_points.txt
+MarkovPatternTool.egg-info/requires.txt
+MarkovPatternTool.egg-info/top_level.txt
