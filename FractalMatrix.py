@@ -431,7 +431,10 @@ def csv_representation_level_markov_chain(input_matrix, length_k=2):
         for j in range(0, 2 ** length_k):
             k = float(matrix_k[i, j])
             k_minus = float(matrix_k_minus1[i / 2, j / 2])
-            transition_matrix[i, j] = k / k_minus
+            if k_minus == 0:
+                transition_matrix[i,j] = 1
+            else:
+                transition_matrix[i, j] = k / k_minus
 
     # print matrix_k
     # print transition_matrix
@@ -653,16 +656,22 @@ def path_to_markovPatternAnalyse(mypath,length_n,length_k,recursiv):
                 break
     else:
         classical_matrix = csv_to_matrix(mypath, True)
+
         markovPatternAnalyse(mypath,classical_matrix,length_n=length_n,length_k=length_k)
 
 def markovPatternAnalyse(path, classical_matrix, length_n, length_k):
     shrinkSize = length_n
     classical_matrix_shrinked = matrix_shrink_size(shrinkSize, classical_matrix)
-    representation_matrix = csv_representation_level_markov_chain(classical_matrix_shrinked,
+    if (length_k == 0):
+        plot_image(classical_matrix_shrinked, path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
+                   sequence_size=np.sum(classical_matrix))
+        representation_matrix = classical_matrix_shrinked
+    else:
+        representation_matrix = csv_representation_level_markov_chain(classical_matrix_shrinked,
                                                                   length_k=length_k)
-    plot_image(representation_matrix,
-               path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
-               sequence_size=np.sum(classical_matrix))
+        plot_image(representation_matrix,
+                   path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
+                   sequence_size=np.sum(classical_matrix))
     # matrix_to_csv(representation_matrix,address[:-4]+"_k"+str(length_k)+"_markov-chain-approx")
     ## plot_image(representation_matrix,address[:-4] + "-NEW")
     sorting(representation_matrix, shrinkSize,
