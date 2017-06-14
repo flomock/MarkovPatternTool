@@ -35,7 +35,6 @@ def cli(path,n_length,k_length,fasta,recursiv):
         n_stop = int(str(n_length).split('-')[1])
     else:
         n_start = n_stop = int(n_length)
-        print n_start
 
     if ('-' in k_length):
         k_start = int(str(k_length).split('-')[0])
