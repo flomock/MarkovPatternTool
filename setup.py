@@ -4,6 +4,7 @@ setup(
     name='MarkovPatternTool',
     version='0.1',
     author='Florian Mock',
+    include_package_data=True,
     install_requires=[
         'Click',
         'numpy',
