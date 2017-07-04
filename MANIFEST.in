@@ -1,5 +1,2 @@
 include README.md
-include cli.py
-include cli.pyc
-FractalMatrix.py
-FractalMatrix.pyc
+recursive-include MPT *

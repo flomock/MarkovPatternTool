@@ -4,6 +4,8 @@ setup(
     name='MarkovPatternTool',
     version='0.1',
     author='Florian Mock',
+    packages=['MPT'],
+    package_dir={'MPT': 'MPT'},
     include_package_data=True,
     install_requires=[
         'Click',
