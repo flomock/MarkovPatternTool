@@ -1,4 +1,0 @@
-include README.md
-include MPT/FractalMatrix.py
-include FractalMatrix.py
-include cli.py

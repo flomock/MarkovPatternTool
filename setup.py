@@ -4,8 +4,8 @@ setup(
     name='MarkovPatternTool',
     version='0.1',
     author='Florian Mock',
-    # packages=['MPT'],
-    # package_dir={'MPT': 'MPT'},
+    py_modules=['cli'],
+    packages=find_packages(),
     include_package_data=True,
     install_requires=[
         'Click',
@@ -21,7 +21,6 @@ setup(
         'subprocess32',
         'matplotlib',
     ],
-    # scripts=['cli']
     entry_points={
         'console_scripts': [
             'MPT =cli:cli'

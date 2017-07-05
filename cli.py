@@ -11,9 +11,8 @@ import FractalMatrix
 @click.option('--k_length','-k', default = str(2), help='Length of the analyzed tuples.')
 @click.option('--fasta','-f', is_flag=True, help='Necessary if path contains fasta-file which should be used.')
 @click.option('--recursiv','-r', is_flag=True, help='Uses also all subdirectories.')
-def cli():
-    print('yolo')
-    pass
+# def cli():
+#     click.echo('Hello World!')
 
 # outputpath, save csv, plot csv-classic, plot csv-markov,
 def cli(path,n_length,k_length,fasta,recursiv):
@@ -31,7 +30,7 @@ def cli(path,n_length,k_length,fasta,recursiv):
     \b
     run with multiple n or k values, eg k=0,1,2,3
     $ MPT -p /home/user/csv/arabidopsis_thaliana.csv -k 0-3
- 
+
     '''
     if ('-' in n_length):
         n_start = int(str(n_length).split('-')[0])
