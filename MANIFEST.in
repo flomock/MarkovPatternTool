@@ -1,3 +1,2 @@
 include README.md
-include MPT/cli.py
 include MPT/FractalMatrix.py

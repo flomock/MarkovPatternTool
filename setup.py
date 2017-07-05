@@ -4,7 +4,7 @@ setup(
     name='MarkovPatternTool',
     version='0.1',
     author='Florian Mock',
-    packages=find_packages(),
+    packages=['MPT'],
     package_dir={'MPT': 'MPT'},
     include_package_data=True,
     install_requires=[
@@ -23,7 +23,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'MPT =MPT.FractalMatrix:cli'
+            'MPT =MPT.__main__:cli'
         ]})
 
 
