@@ -23,7 +23,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'MPT =MPT.__main__:cli'
+            'MPT =__main__:cli'
         ]})
 
 
