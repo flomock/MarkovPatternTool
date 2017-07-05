@@ -4,7 +4,7 @@ setup(
     name='MarkovPatternTool',
     version='0.1',
     author='Florian Mock',
-    py_modules=['cli'],
+    py_modules=['cli','FractalMatrix'],
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
