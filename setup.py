@@ -21,10 +21,13 @@ setup(
         'subprocess32',
         'matplotlib',
     ],
-    entry_points={
-        'console_scripts': [
-            'MPT =__main__:cli'
-        ]})
+    scripts=['cli']
+    # entry_points={
+    #     'console_scripts': [
+    #         'MPT =__main__:cli'
+    #     ]}
+
+)
 
 
 '''
