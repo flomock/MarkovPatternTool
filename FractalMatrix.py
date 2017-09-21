@@ -11,25 +11,12 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-# class FractalMatrixClass:
-#     def __init__(self,argument):
-#         self.data = argument
-# data = ""
-# try:
-#     data = sys.argv[1]
-# except:
-#     print "expected argument"
+
 c_score = 0
 g_score = 0
 t_score = 0
 gc_score = 0
 plt.rcParams['figure.figsize'] = 10, 10  # wi
-
-# print (data)
-
-
-# data = raw_input("path to file: ")
-# matrix = []
 
 # umwandlung Buchstaben in Koordinaten
 def calcCoord(currentLetter):
