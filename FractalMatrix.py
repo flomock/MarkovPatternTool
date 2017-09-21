@@ -249,7 +249,7 @@ def sorting(outMatrix, size, outputName, ploting):
     # calculate placement in array
     for number in m_sorted:
         column = number % (2 ** size)
-        row = (number - column) / (2 ** size)
+        row = int((number - column) / (2 ** size))
         # seq = [(float(m[number])/float(np.sum(outMatrix))), int_to_seq(row, column, size)]
         seq = [m[number], int_to_seq(row, column, size)]
         sorted_seq.append(seq)
@@ -430,11 +430,11 @@ def csv_representation_level_markov_chain(input_matrix, length_k=2):
     for i in range(0, 2 ** length_k):
         for j in range(0, 2 ** length_k):
             k = float(matrix_k[i, j])
-            k_minus = float(matrix_k_minus1[i / 2, j / 2])
+            k_minus = float(matrix_k_minus1[int(i / 2), int(j / 2)])
             if k_minus == 0:
                 transition_matrix[i,j] = 1
             else:
-                transition_matrix[i, j] = k / k_minus
+                transition_matrix[i, j] = int(k / k_minus)
 
     # print matrix_k
     # print transition_matrix
@@ -600,6 +600,7 @@ if testcircle == 13:
                     for x in range(size - 1, -1, -1):
                         buchstabe = wort % 4
                         wort /= 4
+                        wort = int(wort)
                         tupel[x] = buchstabe
                     # calcCoord(tupel, threeD_on, preview)
                     prob = 1.0
