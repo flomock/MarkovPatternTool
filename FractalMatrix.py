@@ -59,12 +59,12 @@ def readDNA(startsize, endsize, subseq):
             #    with open('shift4.mfa') as f:
             reg = re.compile(r">.*\n", re.IGNORECASE)
             seq = f.readlines()
-            dnaSeq = bytearray("".join(seq))
+            dnaSeq = str("".join(seq))
             dnaSeq = reg.sub("", dnaSeq)
             dnaSeq = dnaSeq.replace("\n", "").replace('\r', '')
             dnaSeq = re.sub(r"[^ACGTacgt]+", '', dnaSeq)
     else:
-        dnaSeq = bytearray(re.sub(r"[^ACGTacgt]+", '', str(subseq)))
+        dnaSeq = str(re.sub(r"[^ACGTacgt]+", '', str(subseq)))
 
     # dnaSeq = dnaSeq[1:]
     # dnaSeq = dnaSeq[::-1] #wenn das aktiviert dann auch noch a mit t und c und g tauschen in readDNA
@@ -279,12 +279,12 @@ def sorting(outMatrix, size, outputName, ploting):
             with open('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/MostLeast/' + outputName + ".txt",
                       "w") as text_file:
                 for item in sorted_seq:
-                    text_file.write("%s" % item[0] + "\t" + bytearray("".join(item[1])) + "\n")
+                    text_file.write("%s" % item[0] + "\t" + str("".join(item[1])) + "\n")
                     # np.savetxt(outputName,str(sorted_seq))
         else:
             with open(outputName + ".txt", "w") as text_file:
                 for item in sorted_seq:
-                    text_file.write("%s" % item[0] + "\t" + bytearray("".join(item[1])) + "\n")
+                    text_file.write("%s" % item[0] + "\t" + str("".join(item[1])) + "\n")
 
 
 def matrix_to_csv(outMatrix, StandartOutputName):
@@ -342,7 +342,7 @@ def csvs_to_plot(mypath, size, pushContrast):
         plot_image(foo,name)
 
 
-def csvs_to_moLeCommon(mypath, size, ploting):
+def csvs_to_moLeCommon(mypath, size, plotting):
     # paths = [mypath + '/' + f for f in listdir(mypath) if isfile(join(mypath, f))]
     # for i in paths:
     #     foo = csv_to_matrix(i, False)
@@ -353,12 +353,12 @@ def csvs_to_moLeCommon(mypath, size, ploting):
             # print filename
             address = str(os.path.join(root, filename))
             foo = csv_to_matrix(address, False)
-            if ploting:
+            if plotting:
                 if not os.path.isdir(str(root + "/MostLeast/")):
                     os.makedirs(str(root + "/MostLeast/"))
-                sorting(foo, size, str(root + "/MostLeast/" + filename[:-4]), ploting)
+                sorting(foo, size, str(root + "/MostLeast/" + filename[:-4]), plotting)
             else:
-                sorting(foo, size, address[:-4], ploting)
+                sorting(foo, size, address[:-4], plotting)
 
 
 
