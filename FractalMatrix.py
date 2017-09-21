@@ -411,7 +411,7 @@ def csv_representation_level(length_n, length_m, input_matrix):
     out = [[float(out_matrix[row][col]) / float(prediction_matrix[row, col]) for row in range(len(out_matrix[0]))] for
            col in
            range(len(out_matrix[0]))]
-    print np.mean(out)
+    print(np.mean(out))
 
     # print out
     return np.asarray(out)
@@ -525,12 +525,12 @@ if testcircle == 2:
     # mypath = 'C:\Users\Florian\Dropbox\hiwiManja\Fraktale\FractalDNA\csvToPlot'
     mypath = '/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/csvToPlot/human'
     for root, dirs, files in os.walk(mypath):
-        print root
+        print(root)
         for filename in [f for f in files if f.endswith(".csv")]:
-            print filename
+            print(filename)
 
             if not os.path.isfile(str(os.path.join(root, str(filename[:-4] + ".pdf")))):
-                var = raw_input("Please enter testsize: ")
+                var = input("Please enter testsize: ")
                 test_size = int(var)
                 if test_size == 0:
                     continue
@@ -574,12 +574,12 @@ if testcircle == 13:
     size = 8
     mypath = '/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/csvToPlot'
     for root, dirs, files in os.walk(mypath):
-        print root
+        print(root)
         for filename in [f for f in files if f.endswith(".csv")]:
-            print filename
+            print(filename)
 
             if not False:  # os.path.isfile(str(os.path.join(root, str(filename[:-4] + ".pdf")))):
-                var = raw_input("Please enter testsize: ")
+                var = input("Please enter testsize: ")
                 test_size = int(var)
                 if test_size == 0:
                     continue
@@ -683,7 +683,7 @@ def path_to_fastaFiles(mypath,recursiv):
         for root, dirs, files in os.walk(mypath):
             # print root
             for filename in [f for f in files if not f.endswith(".csv") and not f.endswith(".txt") and not f.endswith(".pdf")]:
-                print filename
+                print(filename)
                 address = str(os.path.join(root, filename))
                 data = address
                 matrixlist = readDNA(8,8,False)
