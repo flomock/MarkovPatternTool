@@ -1,6 +1,6 @@
 # MarkovPatternTool
 Install via:
-pip2 install git+https://github.com/flomock/MarkovPatternTool.git@master
+pip3 install git+https://github.com/flomock/MarkovPatternTool.git@master
 
 
 How to use:
