@@ -410,8 +410,9 @@ def csv_representation_level(length_n, length_m, input_matrix):
 def csv_representation_level_markov_chain(input_matrix, length_k=2):
     size = int(math.log(len(input_matrix[0]), 2))
     matrix_k = matrix_shrink_size(length_k, input_matrix)
+    # print(matrix_k)
     matrix_k_minus1 = matrix_shrink_size(length_k - 1, input_matrix)
-
+    # print(matrix_k_minus1)
     # transition_matrix = buildMatrix(length_k)
     transition_matrix = np.zeros((2 ** length_k, 2 ** length_k), dtype=np.float)
     for i in range(0, 2 ** length_k):
@@ -421,13 +422,13 @@ def csv_representation_level_markov_chain(input_matrix, length_k=2):
             if k_minus == 0:
                 transition_matrix[i,j] = 1
             else:
-                transition_matrix[i, j] = int(k / k_minus)
+                transition_matrix[i, j] = float(k / k_minus)
 
     # print matrix_k
-    # print transition_matrix
+    print(transition_matrix)
     # prediction_matrix = buildMatrix(size)
     prediction_matrix = np.divide(np.array(matrix_k).astype(float), np.sum(matrix_k) - length_k + 1)
-    # print prediction_matrix
+    print(prediction_matrix)
     for i in range(1, size - length_k + 1):
         helper_matrix = np.zeros((2 ** (length_k + i), 2 ** (length_k + i)), dtype=np.float)
 
@@ -442,8 +443,9 @@ def csv_representation_level_markov_chain(input_matrix, length_k=2):
                         tr_y = (m % 2 ** (length_k - 1)) * 2
                         # hier ist der start noch nicht richtig
                         prediction = prediction_matrix[l, m] * transition_matrix[tr_x + x, tr_y + y]
+                        # print(prediction)
                         helper_matrix[l * 2 + x][m * 2 + y] = prediction
-        # print helper_matrix
+        # print(helper_matrix)
         prediction_matrix = helper_matrix
     # hier noch die beiden matrixen teilen
     input_matrix_prob = np.divide(input_matrix.astype(float), np.sum(input_matrix))
