@@ -4,6 +4,7 @@ MPT command line.
 
 import click
 import FractalMatrix
+import os
 
 @click.command()
 @click.option('--path','-p', required=True, help='Path to fasta, csv, or directory with multiple files.')
@@ -46,6 +47,8 @@ def cli(path,n_length,k_length,fasta,recursiv):
 
     if fasta:
         FractalMatrix.path_to_fastaFiles(path,recursiv)
+        if os.path.isfile(path):
+            path = path+".csv"
     for n in range(n_start,n_stop + 1):
         for k in range(k_start,n):
             if(k > k_stop):

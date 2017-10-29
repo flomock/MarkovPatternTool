@@ -84,7 +84,7 @@ def readDNA(startsize, endsize, subseq):
         #     foo -=limit-1
         #     foo = round(foo,ndigits=1)
         counter += 1
-        currentLetter = chr(letter)
+        currentLetter = letter
         if currentLetter == "G" or currentLetter == "g":
             gc_score += 1
             g_score += 1
@@ -111,7 +111,7 @@ def readDNA(startsize, endsize, subseq):
                 if i >= (startsize - 1):
                     # schreibe in die matrix in der matrixliste
                     # beachte das y und z fuer die Zeichenlaenge endsize berechnet wurden
-                    matrixList[i - (startsize - 1)][y / (2 ** (endsize - i - 1))][z / (2 ** (endsize - i - 1))] += 1
+                    matrixList[i - (startsize - 1)][y // (2 ** (endsize - i - 1))][z // (2 ** (endsize - i - 1))] += 1
                     # matrixList[i - (startsize - 1)][x / (2 ** (endsize - i - 1))][z / (2 ** (endsize - i - 1))] += 1
                     # x = float("0."+("".join(tupel[:][0])))
                     # y = float("0."+("".join(tupel[:][1])))
@@ -180,7 +180,10 @@ def plot_image(outMatrix, outputName, sequence_size=None):
 
     ### Use if no arrwos wanted ###
     plt.imshow(pic, cmap='gray_r', interpolation="none", extent=[0, 1, 1, 0])
-
+    # plt.text(-0.08,1.03,"C",fontsize=35)
+    # plt.text(1.03,1.03,"A",fontsize=35)
+    # plt.text(-0.08,-0.08,"T",fontsize=35)
+    # plt.text(1.03,-0.08,"G",fontsize=35)
     plt.gca().invert_yaxis()
     plt.title("C:" + str(int(round(c_score * 100))) + "%  " + "G:" + str(int(round(g_score * 100))) + "%  " +
               "T:" + str(int(round(t_score * 100))) + "%  " + "A:" + str(
@@ -297,6 +300,7 @@ def matrix_to_csv(outMatrix, StandartOutputName):
 
 
 def csv_to_matrix(file, scoring):
+    print(file)
     newMatrix = np.genfromtxt(file, delimiter=',', dtype='int32')
     global c_score, g_score, t_score, gc_score
     if scoring == True:
@@ -671,7 +675,7 @@ def path_to_fastaFiles(mypath,recursiv):
     global data
     if (os.path.isdir(mypath)):
         for root, dirs, files in os.walk(mypath):
-            # print root
+            print(root)
             for filename in [f for f in files if not f.endswith(".csv") and not f.endswith(".txt") and not f.endswith(".pdf")]:
                 print(filename)
                 address = str(os.path.join(root, filename))
@@ -681,3 +685,11 @@ def path_to_fastaFiles(mypath,recursiv):
                     matrix_to_csv(m,address)
             if not recursiv:
                 break
+    elif(os.path.isfile(mypath)):
+        data = mypath
+        matrixlist = readDNA(8, 8, False)
+        for m in matrixlist:
+            matrix_to_csv(m, mypath)
+    else:
+        print("no file or directory!")
+        print("change the path.")
