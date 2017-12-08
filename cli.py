@@ -6,6 +6,7 @@ import click
 import FractalMatrix
 import os
 
+
 @click.command()
 @click.option('--path','-p', required=True, help='Path to fasta, csv, or directory with multiple files.')
 @click.option('--n_length','-n', default = str(5), help='Length of the resulting word.')
@@ -46,7 +47,10 @@ def cli(path,n_length,k_length,fasta,recursiv):
         k_start = k_stop = int(k_length)
 
     if fasta:
-        FractalMatrix.path_to_fastaFiles(path,recursiv)
+        if(n_stop>8):
+            FractalMatrix.path_to_fastaFiles(path, recursiv,n=n_stop)
+        else:
+            FractalMatrix.path_to_fastaFiles(path,recursiv)
         if os.path.isfile(path):
             path = path+".csv"
     for n in range(n_start,n_stop + 1):

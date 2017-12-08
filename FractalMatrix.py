@@ -18,23 +18,38 @@ t_score = 0
 gc_score = 0
 plt.rcParams['figure.figsize'] = 10, 10  # wi
 
-# umwandlung Buchstaben in Koordinaten
-def calcCoord(currentLetter):
-    c = []
-    # currentLetter = chr(currentLetter)
+def one_hot_encoding(seq):
+    global g_score
+    global c_score
+    global t_score
 
-    if currentLetter == "A" or currentLetter == "a" or currentLetter == 0:
-        c = [0, 1, 1]
-    elif currentLetter == "C" or currentLetter == "c" or currentLetter == 1:
-        c = [1, 0, 1]
-    elif currentLetter == "G" or currentLetter == "g" or currentLetter == 2:
-        c = [1, 1, 0]
-    elif currentLetter == "T" or currentLetter == "t" or currentLetter == 3:
-        c = [0, 0, 0]
+    seq_array = np.array(list(seq))
+    x_bin = np.zeros(seq_array.shape,dtype=np.int8)
+    y_bin = np.zeros(seq_array.shape,dtype=np.int8)
+    z_bin = np.zeros(seq_array.shape,dtype=np.int8)
 
-    foo = np.array(c)
-    return foo
+    # x_bin[seq_array == 'A'] = 0
+    # x_bin[seq_array == 'C'] = 1
+    # c_score = x_bin.sum()
+    # x_bin[seq_array == 'G'] = 1
+    # g_score = x_bin.sum()-c_score
+    # x_bin[seq_array == 'T'] = 0
 
+    y_bin[seq_array == 'A'] = 1
+    a_score = y_bin.sum()
+    # y_bin[seq_array == 'C'] = 0
+    y_bin[seq_array == 'G'] = 1
+    # y_bin[seq_array == 'T'] = 0
+    g_score = y_bin.sum() - a_score
+
+    z_bin[seq_array == 'A'] = 1
+    z_bin[seq_array == 'C'] = 1
+    # z_bin[seq_array == 'G'] = 0
+    # z_bin[seq_array == 'T'] = 0
+    c_score = z_bin.sum() - a_score
+    t_score = len(seq) - a_score - c_score - g_score
+
+    return x_bin,y_bin,z_bin
 
 def buildMatrix(size):
     # global matrix
@@ -52,7 +67,7 @@ def readDNA(startsize, endsize, subseq):
     matrixList = []
     for size in range(startsize, endsize + 1):
         matrixList.append(buildMatrix(size))
-    dnaSeq = 0
+
     if subseq == False:
 
         with open(data) as f:
@@ -62,64 +77,46 @@ def readDNA(startsize, endsize, subseq):
             dnaSeq = str("".join(seq))
             dnaSeq = reg.sub("", dnaSeq)
             dnaSeq = dnaSeq.replace("\n", "").replace('\r', '')
-            dnaSeq = re.sub(r"[^ACGTacgt]+", '', dnaSeq)
+            dnaSeq = dnaSeq.upper()
+            dnaSeq = re.sub(r"[^ACGT]+", '', dnaSeq)
     else:
-        dnaSeq = str(re.sub(r"[^ACGTacgt]+", '', str(subseq)))
+        dnaSeq = str(re.sub(r"[^ACGT]+", '', str(subseq)))
 
-    # dnaSeq = dnaSeq[1:]
-    # dnaSeq = dnaSeq[::-1] #wenn das aktiviert dann auch noch a mit t und c und g tauschen in readDNA
 
-    setOfLetters = [0]
-    counter = 1
-    # limit = 10.2
-    # foo = 1
-    # random.seed(1337)
-    # random_start = random.randint(0,2000000000)
-    for letter in dnaSeq:
-        # print foo
-        # if (foo <= limit-1):  ###just to skip letters if necessary
-        #     foo += 1
-        #     continue
-        # else:
-        #     foo -=limit-1
-        #     foo = round(foo,ndigits=1)
-        counter += 1
-        currentLetter = letter
-        if currentLetter == "G" or currentLetter == "g":
-            gc_score += 1
-            g_score += 1
-        if currentLetter == "C" or currentLetter == "c":
-            gc_score += 1
-            c_score += 1
-        if currentLetter == "T" or currentLetter == "t":
-            t_score += 1
-        setOfLetters.append(calcCoord(currentLetter))
+    x_binary, y_binary, z_binary = one_hot_encoding(dnaSeq)
 
-        if counter > endsize:
-            # delete first entry and add new one
-            del setOfLetters[0]
-            tupel = np.array(setOfLetters)
+    def bin_to_int(binary, bigest_bin, old = -1):
+        """
+        parse binary numbers to int and use fact that old already calculated
+        :param binary:
+        :param bigest_bin:
+        :param old:
+        :return:
+        """
+        decimal = old % bigest_bin
+        decimal = decimal * 2 + int(binary[-1])
+        if(old==-1):
+            decimal = 0
+            for digit in binary:
+                decimal = decimal * 2 + int(digit)
+        return decimal
 
-            # x = 0
-            y = 0
-            z = 0
+    bigest_bin = 2**(endsize-1)
+    old_y = -1
+    old_z = -1
 
-            for i in range(0, endsize):
-                # x += tupel[i, 0] * 2 ** (len(tupel[:, 0]) - (i + 1))
-                y += tupel[i, 1] * 2 ** (len(tupel[:, 1]) - (i + 1))
-                z += tupel[i, 2] * 2 ** (len(tupel[:, 2]) - (i + 1))
-                if i >= (startsize - 1):
-                    # schreibe in die matrix in der matrixliste
-                    # beachte das y und z fuer die Zeichenlaenge endsize berechnet wurden
-                    matrixList[i - (startsize - 1)][y // (2 ** (endsize - i - 1))][z // (2 ** (endsize - i - 1))] += 1
-                    # matrixList[i - (startsize - 1)][x / (2 ** (endsize - i - 1))][z / (2 ** (endsize - i - 1))] += 1
-                    # x = float("0."+("".join(tupel[:][0])))
-                    # y = float("0."+("".join(tupel[:][1])))
-                    # z = float("0."+("".join(tupel[:][2])))
-    # gc_score = float(gc_score / len(dnaSeq))
+    for posi in range(0,len(dnaSeq),1):
+        y = bin_to_int(y_binary[posi:posi + endsize],bigest_bin,old_y)
+        z = bin_to_int(z_binary[posi:posi + endsize],bigest_bin,old_z)
+
+        old_y = y
+        old_z = z
+
+        matrixList[0][y][z] += 1
     c_score = float(c_score) / float(len(dnaSeq))
     g_score = float(g_score) / float(len(dnaSeq))
     t_score = float(t_score) / float(len(dnaSeq))
+
     return matrixList
 
 
@@ -453,6 +450,8 @@ def csv_representation_level_markov_chain(input_matrix, length_k=2):
     input_matrix_prob = np.divide(input_matrix.astype(float), np.sum(input_matrix))
     # return real- / predicted- data
     out_matrix = np.divide(input_matrix_prob, prediction_matrix)
+    # Replace nan with zero and inf with finite numbers.
+    out_matrix = np.nan_to_num(out_matrix)
 
     return out_matrix
 
@@ -662,6 +661,8 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k):
     else:
         representation_matrix = csv_representation_level_markov_chain(classical_matrix_shrinked,
                                                                   length_k=length_k)
+        print(representation_matrix)
+        print(classical_matrix)
         plot_image(representation_matrix,
                    path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
                    sequence_size=np.sum(classical_matrix))
@@ -670,7 +671,7 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k):
     sorting(representation_matrix, shrinkSize,
             path[:-4] + "_k" + str(length_k) + "_n" + str(shrinkSize), False)
 
-def path_to_fastaFiles(mypath,recursiv):
+def path_to_fastaFiles(mypath,recursiv,n=8):
     global data
     if (os.path.isdir(mypath)):
         for root, dirs, files in os.walk(mypath):
@@ -679,14 +680,14 @@ def path_to_fastaFiles(mypath,recursiv):
                 print(filename)
                 address = str(os.path.join(root, filename))
                 data = address
-                matrixlist = readDNA(8,8,False)
+                matrixlist = readDNA(n,n,False)
                 for m in matrixlist:
                     matrix_to_csv(m,address)
             if not recursiv:
                 break
     elif(os.path.isfile(mypath)):
         data = mypath
-        matrixlist = readDNA(8, 8, False)
+        matrixlist = readDNA(n, n, False)
         for m in matrixlist:
             matrix_to_csv(m, mypath)
     else:
