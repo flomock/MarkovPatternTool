@@ -85,15 +85,15 @@ def readDNA(startsize, endsize, subseq):
 
     x_binary, y_binary, z_binary = one_hot_encoding(dnaSeq)
 
-    def bin_to_int(binary, bigest_bin, old = -1):
+    def bin_to_int(binary, biggest_bin, old = -1):
         """
         parse binary numbers to int and use fact that old already calculated
         :param binary:
-        :param bigest_bin:
+        :param biggest_bin:
         :param old:
         :return:
         """
-        decimal = old % bigest_bin
+        decimal = old % biggest_bin
         decimal = decimal * 2 + int(binary[-1])
         if(old==-1):
             decimal = 0
@@ -101,13 +101,13 @@ def readDNA(startsize, endsize, subseq):
                 decimal = decimal * 2 + int(digit)
         return decimal
 
-    bigest_bin = 2**(endsize-1)
+    biggest_bin = 2**(endsize-1)
     old_y = -1
     old_z = -1
 
     for posi in range(0,len(dnaSeq),1):
-        y = bin_to_int(y_binary[posi:posi + endsize],bigest_bin,old_y)
-        z = bin_to_int(z_binary[posi:posi + endsize],bigest_bin,old_z)
+        y = bin_to_int(y_binary[posi:posi + endsize],biggest_bin,old_y)
+        z = bin_to_int(z_binary[posi:posi + endsize],biggest_bin,old_z)
 
         old_y = y
         old_z = z
@@ -223,12 +223,12 @@ def int_to_seq(num_i, num_j, size):
     return seq
 
 
-def sorting(outMatrix, size, outputName, ploting):
+def sorting(outMatrix, size, outputName, plotting,log):
     # sorting
     sorted_seq = []
     m = outMatrix.flatten()
     m_sorted = np.argsort(m)
-    if ploting == True:
+    if plotting == True:
         m_small = m_sorted[0:15]
         m_small = np.append(m_small, m_sorted[len(m_sorted) - 15:len(m_sorted)])
         m_sorted = m_small
@@ -241,7 +241,7 @@ def sorting(outMatrix, size, outputName, ploting):
         seq = [m[number], int_to_seq(row, column, size)]
         sorted_seq.append(seq)
 
-    if ploting == True:
+    if plotting == True:
         if m.max() == 0:
             return
 
@@ -270,9 +270,12 @@ def sorting(outMatrix, size, outputName, ploting):
             plt.savefig(outputName + "-MostLeast" + ".png")
         plt.close()
         # plt.show()
-    elif (ploting == "energy"):
+    elif (plotting == "energy"):
         return sorted_seq
     else:
+        if log:
+            for i in range(0,len(sorted_seq)):
+                sorted_seq[i][0] = np.round(np.log(sorted_seq[i][0]),decimals=4)
         # output file
         # print sorted_seq
         if "/" not in outputName:
@@ -634,7 +637,7 @@ if testcircle == 13:
                 plot_image(result_matrix, address[:-4] + "-withProb",
                            sequence_size=int((round(np.sum(classical_matrix) / 100)) * 100))
 
-def path_to_markovPatternAnalyse(mypath,length_n,length_k,recursiv):
+def path_to_markovPatternAnalyse(mypath,length_n,length_k,recursiv,log):
     if (os.path.isdir(mypath)):
     # mypath = '/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/csvToPlot'
         for root, dirs, files in os.walk(mypath):
@@ -649,9 +652,9 @@ def path_to_markovPatternAnalyse(mypath,length_n,length_k,recursiv):
     else:
         classical_matrix = csv_to_matrix(mypath, True)
 
-        markovPatternAnalyse(mypath,classical_matrix,length_n=length_n,length_k=length_k)
+        markovPatternAnalyse(mypath,classical_matrix,length_n=length_n,length_k=length_k,log=log)
 
-def markovPatternAnalyse(path, classical_matrix, length_n, length_k):
+def markovPatternAnalyse(path, classical_matrix, length_n, length_k,log):
     shrinkSize = length_n
     classical_matrix_shrinked = matrix_shrink_size(shrinkSize, classical_matrix)
     if (length_k == 0):
@@ -669,7 +672,7 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k):
     # matrix_to_csv(representation_matrix,address[:-4]+"_k"+str(length_k)+"_markov-chain-approx")
     ## plot_image(representation_matrix,address[:-4] + "-NEW")
     sorting(representation_matrix, shrinkSize,
-            path[:-4] + "_k" + str(length_k) + "_n" + str(shrinkSize), False)
+            path[:-4] + "_k" + str(length_k) + "_n" + str(shrinkSize), False,log=log)
 
 def path_to_fastaFiles(mypath,recursiv,n=8):
     global data

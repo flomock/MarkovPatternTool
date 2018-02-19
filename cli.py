@@ -13,10 +13,8 @@ import os
 @click.option('--k_length','-k', default = str(2), help='Length of the analyzed tuples.')
 @click.option('--fasta','-f', is_flag=True, help='Necessary if path contains fasta-file which should be used.')
 @click.option('--recursiv','-r', is_flag=True, help='Uses also all subdirectories.')
-# def cli():
-#     click.echo('Hello World!')
+@click.option('--log', is_flag=True, help='Returns fold results with log scale. Easier interpretation of over-,under- occurrence.')
 
-# outputpath, save csv, plot csv-classic, plot csv-markov,
 def cli(path,n_length,k_length,fasta,recursiv):
     '''
     Example:
@@ -32,6 +30,9 @@ def cli(path,n_length,k_length,fasta,recursiv):
     \b
     run with multiple n or k values, eg k=0,1,2,3
     $ MPT -p /home/user/csv/arabidopsis_thaliana.csv -k 0-3
+    \b
+    output results with logarithmic scale
+    $ MPT --log -f -r -p /home/user/fasta/ -k 3 -n 6
 
     '''
     if ('-' in n_length):
