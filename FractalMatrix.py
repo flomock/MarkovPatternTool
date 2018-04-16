@@ -14,7 +14,7 @@ c_score = 0
 g_score = 0
 t_score = 0
 gc_score = 0
-plt.rcParams['figure.figsize'] = 10, 10  # wi
+plt.rcParams['figure.figsize'] = 10, 10
 
 
 def one_hot_encoding(seq):
@@ -34,24 +34,13 @@ def one_hot_encoding(seq):
     y_bin = np.zeros(seq_array.shape, dtype=np.int8)
     z_bin = np.zeros(seq_array.shape, dtype=np.int8)
 
-    # x_bin[seq_array == 'A'] = 0
-    # x_bin[seq_array == 'C'] = 1
-    # c_score = x_bin.sum()
-    # x_bin[seq_array == 'G'] = 1
-    # g_score = x_bin.sum()-c_score
-    # x_bin[seq_array == 'T'] = 0
-
     y_bin[seq_array == 'A'] = 1
     a_score = y_bin.sum()
-    # y_bin[seq_array == 'C'] = 0
     y_bin[seq_array == 'G'] = 1
-    # y_bin[seq_array == 'T'] = 0
     g_score = y_bin.sum() - a_score
 
     z_bin[seq_array == 'A'] = 1
     z_bin[seq_array == 'C'] = 1
-    # z_bin[seq_array == 'G'] = 0
-    # z_bin[seq_array == 'T'] = 0
     c_score = z_bin.sum() - a_score
     t_score = len(seq) - a_score - c_score - g_score
 
@@ -69,7 +58,6 @@ def buildMatrix(size):
     return matrix
 
 
-# einlesen der DNA und Berechung starten
 def readDNA(path, endsize, subseq = False):
     """
     1. read the input file
@@ -85,16 +73,13 @@ def readDNA(path, endsize, subseq = False):
     global g_score
     global t_score
     gc_score = 0
-    # matrixList = []
-    # for size in range(startsize, endsize + 1):
-    #     matrixList.append(buildMatrix(size))
+
 
     matrix = buildMatrix(endsize)
 
     if subseq == False:
 
         with open(path) as f:
-            #    with open('shift4.mfa') as f:
             reg = re.compile(r">.*\n", re.IGNORECASE)
             seq = f.readlines()
             dnaSeq = str("".join(seq))
@@ -134,22 +119,12 @@ def readDNA(path, endsize, subseq = False):
         old_y = y
         old_z = z
 
-        # matrixList[0][y][z] += 1
         matrix[y][z] += 1
     c_score = float(c_score) / float(len(dnaSeq))
     g_score = float(g_score) / float(len(dnaSeq))
     t_score = float(t_score) / float(len(dnaSeq))
 
-    # return matrixList
     return matrix
-
-# def identify(seq, j, length):
-#     if (j - length < 0):
-#         return False
-#     elif (seq[j: j + length] == seq[j - length: j]):
-#         return True
-#     else:
-#         return False
 
 
 # ACHTUNG gilt nur fuer num i = y und num j = z
@@ -214,22 +189,9 @@ def plot_image(outMatrix, outputName, sequence_size=None):
     ax = plt.gca()
     ax.set_autoscale_on(False)
 
-    # ax = show_path_of_tuble(ax,pixel_sequence) # if arrows wanted
     plt.gca().set_aspect('equal', adjustable='box')
     plt.savefig(outputName + ".pdf")
     plt.close()
-
-
-# def show_path_of_tuble(ax, pixel_sequence):
-#     for k in range(1, len(pixel_sequence[:, 0]), 1):
-#         # ,,:3] = 1,0,0
-#         former_x = float(pixel_sequence[k - 1, 1]) / 256.0
-#         former_y = float(pixel_sequence[k - 1, 0]) / 256.0
-#
-#         ax.arrow(former_x, former_y,
-#                  (float(pixel_sequence[k, 1]) / 256.0) - former_x, (float(pixel_sequence[k, 0]) / 256.0) - former_y
-#                  , length_includes_head=True, head_width=0.01, head_length=0.02, fc='b', ec='r')
-#     return ax
 
 
 def int_to_seq(num_i, num_j, size):
@@ -277,7 +239,6 @@ def sorting(outMatrix, size, outputName, plotting, log):
     for number in m_sorted:
         column = number % (2 ** size)
         row = int((number - column) / (2 ** size))
-        # seq = [(float(m[number])/float(np.sum(outMatrix))), int_to_seq(row, column, size)]
         seq = [m[number], int_to_seq(row, column, size)]
         sorted_seq.append(seq)
 
@@ -309,21 +270,17 @@ def sorting(outMatrix, size, outputName, plotting, log):
 
             plt.savefig(outputName + "-MostLeast" + ".png")
         plt.close()
-        # plt.show()
     elif (plotting == "energy"):
         return sorted_seq
     else:
         if log:
             for i in range(0, len(sorted_seq)):
                 sorted_seq[i][0] = np.round(np.log(sorted_seq[i][0]), decimals=4)
-        # output file
-        # print sorted_seq
         if "/" not in outputName:
             with open('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/MostLeast/' + outputName + ".txt",
                       "w") as text_file:
                 for item in sorted_seq:
                     text_file.write("%s" % item[0] + "\t" + str("".join(item[1])) + "\n")
-                    # np.savetxt(outputName,str(sorted_seq))
         else:
             with open(outputName + ".txt", "w") as text_file:
                 for item in sorted_seq:
@@ -424,42 +381,6 @@ def csvs_to_moLeCommon(mypath, size, plotting):
                 sorting(foo, size, address[:-4], plotting)
 
 
-# def csv_representation_level(length_n, length_m, input_matrix):
-#     """
-#     get level of inhibition or activation
-#     :param length_n:
-#     :param length_m:
-#     :param input_matrix: big matrix which gets analyzed
-#     :return:
-#     """
-#     matrix_n = matrix_shrink_size(length_n, input_matrix)
-#     if (length_n != length_m):
-#         matrix_m = matrix_shrink_size(length_m, input_matrix)
-#     else:
-#         matrix_m = matrix_n
-#     prediction_matrix = buildMatrix(length_n + length_m).astype(float)
-#     total_n = np.sum(matrix_n)
-#
-#     for i in range(0, 2 ** length_n):
-#         for j in range(0, 2 ** length_n):
-#             for k in range(0, 2 ** length_m):
-#                 for l in range(0, 2 ** length_m):
-#                     prediction = float(matrix_n[i, j]) / float(total_n) * float(matrix_m[k, l]) / float(total_n)
-#                     # blaehe jedes quadrat in matrix n auf. Auf groesse [2**length_m,2**length_m]
-#                     prediction_matrix[(i * (2 ** length_m)) + k][(j * (2 ** length_m)) + l] = prediction
-#     plot_image(prediction_matrix, "prediction")
-#     if (length_m + length_n != int(math.log(len(input_matrix[0]), 2))):
-#         out_matrix = matrix_shrink_size(length_m + length_n, input_matrix).astype(float) / total_n
-#     else:
-#         out_matrix = input_matrix.astype(float) / total_n
-#     out = [[float(out_matrix[row][col]) / float(prediction_matrix[row, col]) for row in range(len(out_matrix[0]))] for
-#            col in
-#            range(len(out_matrix[0]))]
-#     print(np.mean(out))
-#
-#     return np.asarray(out)
-
-
 def csv_representation_level_markov_chain(input_matrix, length_k=2):
     """
     main method of pattern prediction with markov chains
@@ -545,11 +466,8 @@ def path_to_markovPatternAnalyse(mypath, length_n, length_k, recursiv, log):
     """
 
     if (os.path.isdir(mypath)):
-        # mypath = '/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/csvToPlot'
         for root, dirs, files in os.walk(mypath):
-            # print root
             for filename in [f for f in files if f.endswith(".csv")]:
-                # print filename
                 address = str(os.path.join(root, filename))
                 classical_matrix = csv_to_matrix(address, True)
                 markovPatternAnalyse(path=address, classical_matrix=classical_matrix, length_n=length_n,
@@ -608,18 +526,13 @@ def path_to_fastaFiles(mypath, recursiv, n=8):
                 print(filename)
                 address = str(os.path.join(root, filename))
                 data = address
-                # matrixlist = readDNA(data,n, n, subseq=False)
                 matrix = readDNA(data, n, subseq=False)
-                # for m in matrixlist:
-                #     matrix_to_csv(m, address)
                 matrix_to_csv(matrix, address)
             if not recursiv:
                 break
     elif (os.path.isfile(mypath)):
         data = mypath
         matrix = readDNA(data, n, subseq=False)
-        # for m in matrixlist:
-        #     matrix_to_csv(m, mypath)
         matrix_to_csv(matrix, mypath)
     else:
         print("no file or directory!")
