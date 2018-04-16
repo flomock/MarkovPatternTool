@@ -10,15 +10,9 @@ setup(
     install_requires=[
         'Click',
         'numpy',
-        # 'dateutil',
         'pyparsing',
-        # 'libpng',
         'pytz',
-        # 'FreeType',
-        # 'cycler',
         'six',
-        # 'functools32',
-        # 'subprocess32',
         'matplotlib',
     ],
     entry_points={
