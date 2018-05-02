@@ -14,6 +14,7 @@ setup(
         'pytz',
         'six',
         'matplotlib',
+        'editdistance',
     ],
     entry_points={
         'console_scripts': [

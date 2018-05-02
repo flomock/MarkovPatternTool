@@ -9,6 +9,7 @@ import numpy as np
 import os
 from os import listdir
 from os.path import isfile, join
+import editdistance
 
 c_score = 0
 g_score = 0
@@ -58,7 +59,7 @@ def buildMatrix(size):
     return matrix
 
 
-def readDNA(path, endsize, subseq = False):
+def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
     """
     1. read the input file
     2. prepare big matrix and parsed sequence
@@ -74,7 +75,6 @@ def readDNA(path, endsize, subseq = False):
     global t_score
     gc_score = 0
 
-
     matrix = buildMatrix(endsize)
 
     if subseq == False:
@@ -89,6 +89,9 @@ def readDNA(path, endsize, subseq = False):
             dnaSeq = re.sub(r"[^ACGT]+", '', dnaSeq)
     else:
         dnaSeq = str(re.sub(r"[^ACGT]+", '', str(subseq)))
+
+    if filter_mikroSats:
+        dnaSeq = del_microsats(dnaSeq)
 
     x_binary, y_binary, z_binary = one_hot_encoding(dnaSeq)
 
@@ -471,7 +474,7 @@ def path_to_markovPatternAnalyse(mypath, length_n, length_k, recursiv, log):
                 address = str(os.path.join(root, filename))
                 classical_matrix = csv_to_matrix(address, True)
                 markovPatternAnalyse(path=address, classical_matrix=classical_matrix, length_n=length_n,
-                                     length_k=length_k)
+                                     length_k=length_k, log=log)
             if not recursiv:
                 break
     else:
@@ -509,7 +512,7 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
             path[:-4] + "_k" + str(length_k) + "_n" + str(shrinkSize), False, log=log)
 
 
-def path_to_fastaFiles(mypath, recursiv, n=8):
+def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False):
     """
     parse multiple fasta files to csv
     :param mypath: path to fasta files
@@ -526,14 +529,120 @@ def path_to_fastaFiles(mypath, recursiv, n=8):
                 print(filename)
                 address = str(os.path.join(root, filename))
                 data = address
-                matrix = readDNA(data, n, subseq=False)
+                matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats)
                 matrix_to_csv(matrix, address)
             if not recursiv:
                 break
     elif (os.path.isfile(mypath)):
         data = mypath
-        matrix = readDNA(data, n, subseq=False)
+        matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats)
         matrix_to_csv(matrix, mypath)
     else:
         print("no file or directory!")
         print("change the path.")
+
+
+def distance(seq, j, length):
+    return editdistance.eval(seq[j: j + length], seq[j - length: j])
+
+
+def find_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
+    """
+    1. go over sequence
+    2. try to extend pattern
+    3. jump forward to next possible pattern
+    :param dnaSeq:
+    :return:
+    """
+    stp = 0
+    microsats = []
+
+    """1. go over sequence"""
+    while stp < len(dnaSeq):
+        ends = []
+        hits = []
+
+        """check all possible microsatellite tuple lengths"""
+        for length in range(2, max_len_tuple + 1):
+            pattern = dnaSeq[stp:stp + length]
+            posi = stp + length
+            mis = 0
+            endposi = posi - 1
+            hit = 1
+
+            """2. try to extend pattern"""
+            while posi < len(dnaSeq):
+                dis = editdistance.eval(pattern, dnaSeq[posi: posi + length])
+
+                if dis <= 1:
+                    hit += 1
+                    mis += dis
+                    if mis <= 2:
+                        endposi = posi + 1
+                else:
+                    if (posi + length + 1 < len(dnaSeq)):
+                        if (editdistance.eval(pattern, dnaSeq[posi + 1: posi + length + 1]) == 0):
+                            posi += -1
+                            mis += 1
+                        else:
+                            mis += dis
+                    else:
+                        mis += dis
+                posi += 2
+
+                if mis > 2:
+                    break
+
+            ends.append(endposi)
+            hits.append(hit)
+
+        if max(hits) > min_hits:
+            print(dnaSeq[stp:max(ends) + 1])
+            sat = (stp, max(ends))
+            microsats.append(sat)
+            """3. jump forward to next possible pattern"""
+            stp = max(ends)
+        else:
+            stp += 1
+    return microsats
+
+
+def del_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
+    """
+    1. get positions of microsatellites
+    2. delete satellites
+    :param dnaSeq: input sequence
+    :param min_hits: minimal pattern hits to be microsat.
+    :return: clean dna
+    """
+
+    """1. get positions of microsatellites"""
+    microsats = find_microsats(dnaSeq, min_hits=min_hits, max_len_tuple=max_len_tuple)
+
+    """2. reverse list for easier deletion"""
+    microsats = list(reversed(microsats))
+
+    """3. delete satellites"""
+    dnaSeq = list(dnaSeq)
+
+    for sat in microsats:
+        del dnaSeq[sat[0]:sat[1] + 1]
+
+    return ''.join(dnaSeq)
+
+
+with open('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/test.fa') as f:
+    reg = re.compile(r">.*\n", re.IGNORECASE)
+    seq = f.readlines()
+    dnaSeq = str("".join(seq))
+    dnaSeq = reg.sub("", dnaSeq)
+    dnaSeq = dnaSeq.replace("\n", "").replace('\r', '')
+    dnaSeq = dnaSeq.upper()
+    dnaSeq = re.sub(r"[^ACGT]+", '', dnaSeq)
+    import time
+
+    start = time.process_time()
+    for i in range(1):
+        print(del_microsats(dnaSeq, min_hits=10))
+    end = time.process_time()
+    print(end - start)

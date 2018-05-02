@@ -8,14 +8,15 @@ import os
 
 
 @click.command()
-@click.option('--path','-p', required=True, help='Path to fasta, csv, or directory with multiple files.')
-@click.option('--n_length','-n', default = str(5), help='Length of the resulting word.')
-@click.option('--k_length','-k', default = str(2), help='Length of the analyzed tuples.')
-@click.option('--fasta','-f', is_flag=True, help='Necessary if path contains fasta-file which should be used.')
-@click.option('--recursiv','-r', is_flag=True, help='Uses also all subdirectories.')
-@click.option('--log', is_flag=True, help='Returns fold results with log scale. Easier interpretation of over-,under- occurrence.')
-
-def cli(path,n_length,k_length,fasta,recursiv):
+@click.option('--path', '-p', required=True, help='Path to fasta, csv, or directory with multiple files.')
+@click.option('--n_length', '-n', default=str(5), help='Length of the resulting word.')
+@click.option('--k_length', '-k', default=str(2), help='Length of the analyzed tuples.')
+@click.option('--fasta', '-f', is_flag=True, help='Necessary if path contains fasta-file which should be used.')
+@click.option('--recursiv', '-r', is_flag=True, help='Uses also all subdirectories.')
+@click.option('--log', is_flag=True,
+              help='Returns fold results with log scale. Easier interpretation of over-,under- occurrence.')
+@click.option('--filter', is_flag=True, help='Filter out microsatellites')
+def cli(path, n_length, k_length, fasta, recursiv, log, filter):
     '''
     Example:
 
@@ -48,15 +49,14 @@ def cli(path,n_length,k_length,fasta,recursiv):
         k_start = k_stop = int(k_length)
 
     if fasta:
-        if(n_stop>8):
-            FractalMatrix.path_to_fastaFiles(path, recursiv,n=n_stop)
+        if (n_stop > 8):
+            FractalMatrix.path_to_fastaFiles(path, recursiv, n=n_stop, filter_mikroSats=filter)
         else:
-            FractalMatrix.path_to_fastaFiles(path,recursiv)
+            FractalMatrix.path_to_fastaFiles(path, recursiv, filter_mikroSats=filter)
         if os.path.isfile(path):
-            path = path+".csv"
-    for n in range(n_start,n_stop + 1):
-        for k in range(k_start,n):
-            if(k > k_stop):
+            path = path + ".csv"
+    for n in range(n_start, n_stop + 1):
+        for k in range(k_start, n):
+            if (k > k_stop):
                 break
-            FractalMatrix.path_to_markovPatternAnalyse(path,n,k,recursiv)
-
+            FractalMatrix.path_to_markovPatternAnalyse(path, n, k, recursiv,log)
