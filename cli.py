@@ -6,7 +6,6 @@ import click
 import FractalMatrix
 import os
 
-
 @click.command()
 @click.option('--path', '-p', required=True, help='Path to fasta, csv, or directory with multiple files.')
 @click.option('--n_length', '-n', default=str(5), help='Length of the resulting word.')
@@ -16,6 +15,8 @@ import os
 @click.option('--log', is_flag=True,
               help='Returns fold results with log scale. Easier interpretation of over-,under- occurrence.')
 @click.option('--filter', is_flag=True, help='Filter out microsatellites')
+# @click.option('--sat_length', default=str(5), help='Maximum length microsatellite tuple.')
+# @click.option('--sat_count', default=str(10), help='Minimum number repetitions microsatellite tuple.')
 def cli(path, n_length, k_length, fasta, recursiv, log, filter):
     '''
     Example:
@@ -60,3 +61,6 @@ def cli(path, n_length, k_length, fasta, recursiv, log, filter):
             if (k > k_stop):
                 break
             FractalMatrix.path_to_markovPatternAnalyse(path, n, k, recursiv,log)
+
+# cli(path="/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/dinuShuffle.fa",n_length="5",k_length="2",fasta=True,recursiv=False,log=False,filter=True)
+cli()

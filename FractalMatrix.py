@@ -10,6 +10,9 @@ import os
 from os import listdir
 from os.path import isfile, join
 import editdistance
+from multiprocessing import Pool
+import multiprocessing
+from itertools import repeat
 
 c_score = 0
 g_score = 0
@@ -80,54 +83,94 @@ def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
     if subseq == False:
 
         with open(path) as f:
-            reg = re.compile(r">.*\n", re.IGNORECASE)
-            seq = f.readlines()
-            dnaSeq = str("".join(seq))
-            dnaSeq = reg.sub("", dnaSeq)
-            dnaSeq = dnaSeq.replace("\n", "").replace('\r', '')
-            dnaSeq = dnaSeq.upper()
-            dnaSeq = re.sub(r"[^ACGT]+", '', dnaSeq)
+            dnaSeq = ""
+            iterlines = iter(f)
+            first_line = next(iterlines)
+            if first_line.startswith(">"):
+                pass
+            else:
+                dnaSeq += first_line.upper()[:-1]
+
+            for line in f:
+                dnaSeq += line.upper()[:-1]
+
+            subseqs_DNA = re.split(r"[^ACGT]+", dnaSeq)
+
     else:
-        dnaSeq = str(re.sub(r"[^ACGT]+", '', str(subseq)))
+        subseqs_DNA = re.split(r"[^ACGT]+", subseq)
 
+    numCPUs = multiprocessing.cpu_count()
+    pool = Pool(numCPUs)
     if filter_mikroSats:
-        dnaSeq = del_microsats(dnaSeq)
+        subseqs_DNA = pool.map(del_microsats, subseqs_DNA)
 
-    x_binary, y_binary, z_binary = one_hot_encoding(dnaSeq)
+    subseqs_DNA = [x for y in subseqs_DNA for x in y]
 
-    def bin_to_int(binary, biggest_bin, old=-1):
-        """
-        parse binary numbers to int and use fact that old already calculated
-        :param binary: input sequence of binary numbers
-        :param biggest_bin: biggest possible number
-        :param old: old decimal integer number
-        :return: decimal integer
-        """
-        decimal = old % biggest_bin
-        decimal = decimal * 2 + int(binary[-1])
-        if (old == -1):
-            decimal = 0
-            for digit in binary:
-                decimal = decimal * 2 + int(digit)
-        return decimal
+    # print(''.join(subseqs_DNA))
+    # exit()
 
-    biggest_bin = 2 ** (endsize - 1)
-    old_y = -1
-    old_z = -1
+    x_bins, y_bins, z_bins = [], [], []
+    for seq in subseqs_DNA:
+        x_binary, y_binary, z_binary = one_hot_encoding(seq)
+        x_bins.append(x_binary)
+        y_bins.append(y_binary)
+        z_bins.append(z_binary)
 
-    for posi in range(0, len(dnaSeq), 1):
-        y = bin_to_int(y_binary[posi:posi + endsize], biggest_bin, old_y)
-        z = bin_to_int(z_binary[posi:posi + endsize], biggest_bin, old_z)
+    input_bins = []
+    for cpu in range(numCPUs):
+        input_bins.append([])
 
-        old_y = y
-        old_z = z
+    for index, i in enumerate(range(len(y_bins))):
+        input_bins[index % numCPUs].append([y_bins[i], z_bins[i]])
 
-        matrix[y][z] += 1
-    c_score = float(c_score) / float(len(dnaSeq))
-    g_score = float(g_score) / float(len(dnaSeq))
-    t_score = float(t_score) / float(len(dnaSeq))
+    matrix_list = pool.starmap(countTuple, zip(input_bins, repeat(endsize)))
+
+    matrix = np.sum(matrix_list, axis=0)
+    totalLength = np.sum(matrix)
+
+    c_score = c_score / totalLength
+    g_score = g_score / totalLength
+    t_score = t_score / totalLength
 
     return matrix
+
+
+def bin_to_int(binary, biggest_bin, old=-1):
+    """
+    parse binary numbers to int and use fact that old already calculated
+    :param binary: input sequence of binary numbers
+    :param biggest_bin: biggest possible number
+    :param old: old decimal integer number
+    :return: decimal integer
+    """
+    decimal = old % biggest_bin
+    decimal = decimal * 2 + int(binary[-1])
+    if (old == -1):
+        decimal = 0
+        for digit in binary:
+            decimal = decimal * 2 + int(digit)
+    return decimal
+
+
+def countTuple(input, endsize):
+    matrix_sub = buildMatrix(endsize)
+    for i in range(len(input)):
+        biggest_bin = 2 ** (endsize - 1)
+        old_y = -1
+        old_z = -1
+        input_bin = input[i]
+        y_binary = input_bin[0]
+        z_binary = input_bin[1]
+
+        for posi in range(0, len(y_binary) - endsize + 1, 1):
+            y = bin_to_int(y_binary[posi:posi + endsize], biggest_bin, old_y)
+            z = bin_to_int(z_binary[posi:posi + endsize], biggest_bin, old_z)
+            old_y = y
+            old_z = z
+
+            matrix_sub[y][z] += 1
+
+    return matrix_sub
 
 
 # ACHTUNG gilt nur fuer num i = y und num j = z
@@ -559,8 +602,9 @@ def find_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
 
     """1. go over sequence"""
     while stp < len(dnaSeq):
-        ends = []
-        hits = []
+        ends = np.array([], dtype=int)
+        hits = np.array([], dtype=int)
+        length_sat = np.array([], dtype=int)
 
         """check all possible microsatellite tuple lengths"""
         for length in range(2, max_len_tuple + 1):
@@ -569,45 +613,91 @@ def find_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
             mis = 0
             endposi = posi - 1
             hit = 1
+            stp_2 = stp
 
             """2. try to extend pattern"""
             while posi < len(dnaSeq):
                 dis = editdistance.eval(pattern, dnaSeq[posi: posi + length])
 
+                # # check if substitution
+                if dis >= 1 and dis < length:
+                    dis_short = editdistance.eval(pattern, dnaSeq[posi: posi + length - 1])
+                    if dis_short == 1:
+                        dis_shift = editdistance.eval(pattern, dnaSeq[posi + length - 1:posi + length - 1 + length])
+                        dis_next = editdistance.eval(pattern, dnaSeq[posi + length: posi + length + length])
+                        if dis_shift < dis_next:
+                            dis = 1
+                            posi += -1
+
                 if dis <= 1:
-                    hit += 1
                     mis += dis
                     if mis <= 2:
-                        endposi = posi + 1
+                        hit += 1
+                        endposi = posi + length - 1
                 else:
+                    # check for reading frame shift about 1
                     if (posi + length + 1 < len(dnaSeq)):
-                        if (editdistance.eval(pattern, dnaSeq[posi + 1: posi + length + 1]) == 0):
-                            posi += -1
+                        if (editdistance.eval(pattern, dnaSeq[posi + 1: posi + length + 1]) + mis <= 2):
+                            # if insertion change reading frame
+                            posi += 1 - length
                             mis += 1
                         else:
                             mis += dis
+
+                    # check for reading frame shift about 2
+                    elif (posi + length + 2 < len(dnaSeq) and mis == 0):
+                        if (editdistance.eval(pattern, dnaSeq[posi + 2: posi + length + 2]) + mis <= 2):
+                            # if indel change reading frame
+                            posi += 2 - length
+                            mis += 2
+                        else:
+                            mis += dis
+
                     else:
                         mis += dis
-                posi += 2
+                posi += length
 
                 if mis > 2:
+                    # check if possible to extend to the left
+                    if mis - dis <= 1 and stp - length + 1 >= 0:
+                        dis_start = editdistance.eval(pattern, dnaSeq[stp - length:stp])
+                        if dis_start + mis - dis <= 2:
+                            stp_2 += -length
+                            hit += 1
+                        else:
+                            dis_start = editdistance.eval(pattern, dnaSeq[stp - length + 1:stp])
+                            if dis_start + mis - dis <= 2:
+                                stp_2 += -length + 1
+                                hit += 1
                     break
 
-            ends.append(endposi)
-            hits.append(hit)
+            ends = np.append(ends, endposi)
+            hits = np.append(hits, hit)
+            length_sat = np.append(length_sat, endposi - stp_2)
 
-        if max(hits) > min_hits:
-            print(dnaSeq[stp:max(ends) + 1])
-            sat = (stp, max(ends))
+        if max(hits) >= min_hits:
+            # find longest sequences of all sequences with max(hits)
+            longestSeq = max(length_sat[hits >= min_hits])
+            allowed_by_hits = hits >= min_hits
+            allowed_by_length = length_sat == longestSeq
+            # get end position of this sequence
+            end = ends[allowed_by_hits * allowed_by_length]
+            # assert len(end) == 1, str(allowed_by_hits * allowed_by_length)+"\n end:"+str(end)
+            # if there are multiple entries then they have the same value
+            end = int(end[0])
+
+            # sat = (stp, max(ends))
+            sat = (end - longestSeq, end)
             microsats.append(sat)
             """3. jump forward to next possible pattern"""
-            stp = max(ends)
+            # stp = max(ends)
+            stp += 1
         else:
             stp += 1
     return microsats
 
 
-def del_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
+def del_microsats(dnaSeq, min_hits=5, max_len_tuple=3):
     """
     1. get positions of microsatellites
     2. delete satellites
@@ -626,23 +716,33 @@ def del_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
     dnaSeq = list(dnaSeq)
 
     for sat in microsats:
-        del dnaSeq[sat[0]:sat[1] + 1]
+        # print(dnaSeq[sat[0]:sat[1] + 1])
+        # del dnaSeq[sat[0]:sat[1] + 1]
+        dnaSeq[sat[0]:sat[1] + 1] = map(str.lower, dnaSeq[sat[0]:sat[1] + 1])
 
-    return ''.join(dnaSeq)
+    dnaSeq = ''.join(dnaSeq)
+    return re.findall(r"[^acgt]+",dnaSeq)
+    # return ''.join(dnaSeq)
+    # return ''.join(x for x in dnaSeq if not x.islower())
 
 
-with open('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/test.fa') as f:
-    reg = re.compile(r">.*\n", re.IGNORECASE)
-    seq = f.readlines()
-    dnaSeq = str("".join(seq))
-    dnaSeq = reg.sub("", dnaSeq)
-    dnaSeq = dnaSeq.replace("\n", "").replace('\r', '')
-    dnaSeq = dnaSeq.upper()
-    dnaSeq = re.sub(r"[^ACGT]+", '', dnaSeq)
-    import time
-
-    start = time.process_time()
-    for i in range(1):
-        print(del_microsats(dnaSeq, min_hits=10))
-    end = time.process_time()
-    print(end - start)
+# with open('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/test.fa') as f:
+#     reg = re.compile(r">.*\n", re.IGNORECASE)
+#     seq = f.readlines()
+#     dnaSeq = str("".join(seq))
+#     dnaSeq = reg.sub("", dnaSeq)
+#     dnaSeq = dnaSeq.replace("\n", "").replace('\r', '')
+#     dnaSeq = dnaSeq.upper()
+#     dnaSeq = re.sub(r"[^ACGT]+", '', dnaSeq)
+#     import time
+#
+#     start = time.process_time()
+#     for i in range(1):
+#         print(del_microsats(dnaSeq, min_hits=10))
+#     end = time.process_time()
+#     print(end - start)
+# seq = "ccacacagatttt".upper()
+# seq = "ccacacagacatcataacaaaaaattctcatttctatggtatgcccacacagacatcataacaaaaaattctcatttctatggtatgcccacacagacatcataacaaaaaattctcatttctatggtatgcccacacagacatcataacaaaaaattctcatttctatggtatgc".upper()
+#
+# print(del_microsats(seq,min_hits=5))
+# readDNA("/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/dinuShuffle.fa", 8, filter_mikroSats=True)
