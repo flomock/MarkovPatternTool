@@ -1,11 +1,14 @@
 # MarkovPatternTool
-Install via:
+**Install via:**
+```
 pip3 install git+https://github.com/flomock/MarkovPatternTool.git@master
+```
 
 
-How to use:
 
-  Example:
+##How to use:
+
+  **Example:**
 ```
   $ MPT -p /home/user/csv/arabidopsis_thaliana.csv
 ```
@@ -22,13 +25,14 @@ How to use:
   $ MPT -p /home/user/csv/arabidopsis_thaliana.csv -k 0-3
 ```  
 
-Options:
-  -p, --path TEXT         Path to fasta, csv, or directory with multiple
-                          files.  [required]
-  -n, --n_length INTEGER  Length of the resulting word.
-  -k, --k_length INTEGER  Length of the analyzed tuples.
-  -f, --fasta             Necessary if path contains fasta-file which should
-                          be used.
-  -r, --recursiv          Uses also all subdirectories.
-  --help                  Show this message and exit.
+**Options:**
+
+- -p, --path Path to fasta, csv, or directory with multiple files.  [required]
+- -n, --n_length INTEGER  Length of the resulting word.
+- -k, --k_length INTEGER  Length of the analyzed tuples.
+- -f, --fasta             Necessary if path contains fasta-file which should be used.
+- -r, --recursiv          Uses also all subdirectories.
+- --log                   Returns fold results with log scale. Easier interpretation of over-,under- occurrence.
+- --filter                Filter out microsatellites
+- --help                  Show this message and exit.
 

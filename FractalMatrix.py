@@ -103,8 +103,7 @@ def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
     pool = Pool(numCPUs)
     if filter_mikroSats:
         subseqs_DNA = pool.map(del_microsats, subseqs_DNA)
-
-    subseqs_DNA = [x for y in subseqs_DNA for x in y]
+        subseqs_DNA = [x for y in subseqs_DNA for x in y]
 
     # print(''.join(subseqs_DNA))
     # exit()
@@ -697,7 +696,7 @@ def find_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
     return microsats
 
 
-def del_microsats(dnaSeq, min_hits=5, max_len_tuple=3):
+def del_microsats(dnaSeq, min_hits=5, max_len_tuple=5):
     """
     1. get positions of microsatellites
     2. delete satellites
