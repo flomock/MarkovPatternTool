@@ -271,7 +271,7 @@ def sorting(outMatrix, size, outputName, plotting, log):
     :param log: True if log scale wanted
     :return: sorted list
     """
-
+    cwd = os.getcwd()
     sorted_seq = []
     m = outMatrix.flatten()
     m_sorted = np.argsort(m)
@@ -309,10 +309,8 @@ def sorting(outMatrix, size, outputName, plotting, log):
         plt.tight_layout()
         plt.ylim(ymin=1)
         if "/" not in outputName:
-            plt.savefig('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/MostLeast/' + outputName + str(
-                size) + "MostLeast" + ".png")
+            plt.savefig(os.path.join(cwd,f"{outputName}{size}MostLeast.png"))
         else:
-
             plt.savefig(outputName + "-MostLeast" + ".png")
         plt.close()
     elif (plotting == "energy"):
@@ -322,8 +320,7 @@ def sorting(outMatrix, size, outputName, plotting, log):
             for i in range(0, len(sorted_seq)):
                 sorted_seq[i][0] = np.round(np.log(sorted_seq[i][0]), decimals=4)
         if "/" not in outputName:
-            with open('/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/MostLeast/' + outputName + ".txt",
-                      "w") as text_file:
+            with open(os.path.join(cwd,f"{outputName}.txt"),"w") as text_file:
                 for item in sorted_seq:
                     text_file.write("%s" % item[0] + "\t" + str("".join(item[1])) + "\n")
         else:
