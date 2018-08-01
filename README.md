@@ -6,7 +6,7 @@ pip3 install git+https://github.com/flomock/MarkovPatternTool.git@master
 
 
 
-##How to use:
+## How to use:
 
   **Example:**
 ```
@@ -27,12 +27,15 @@ pip3 install git+https://github.com/flomock/MarkovPatternTool.git@master
 
 **Options:**
 
-- -p, --path Path to fasta, csv, or directory with multiple files.  [required]
-- -n, --n_length INTEGER  Length of the resulting word.
-- -k, --k_length INTEGER  Length of the analyzed tuples.
-- -f, --fasta             Necessary if path contains fasta-file which should be used.
-- -r, --recursiv          Uses also all subdirectories.
-- --log                   Returns fold results with log scale. Easier interpretation of over-,under- occurrence.
-- --filter                Filter out microsatellites
-- --help                  Show this message and exit.
+command | what it does
+  ------------- | -------------
+-p, --path              |Path to fasta, csv, or directory with multiple files.  [required]
+-n, --n_length   |Length of the resulting word.
+-k, --k_length |Length of the analyzed tuples.
+-f, --fasta             |Necessary if path contains fasta-file which should be used.
+-r, --recursiv          |Uses also all subdirectories.
+--log                   |Returns fold results with log scale. Easier interpretation of over-,under- occurrence.
+--filter                |Filter out microsatellites;
+--help                  |Show this message and exit.
+
 
