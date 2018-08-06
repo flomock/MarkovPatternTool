@@ -90,9 +90,16 @@ def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
                 pass
             else:
                 dnaSeq += first_line.upper()[:-1]
-
+            header_counter = 0
             for line in f:
-                dnaSeq += line.upper()[:-1]
+                if line.startswith(">"):
+                    header_counter += 1
+                    dnaSeq += "N"
+                else:
+                    dnaSeq += line.upper()[:-1]
+
+            if header_counter > 0:
+                print(f"Warning, multifasta file detected:{path}\nThe file will be processed as a single sequence.")
 
             subseqs_DNA = re.split(r"[^ACGT]+", dnaSeq)
 
@@ -507,17 +514,20 @@ def path_to_markovPatternAnalyse(mypath, length_n, length_k, recursiv, log):
     :return:
     """
 
+    cwd = os.getcwd()
     if (os.path.isdir(mypath)):
         for root, dirs, files in os.walk(mypath):
             for filename in [f for f in files if f.endswith(".csv")]:
                 address = str(os.path.join(root, filename))
-                classical_matrix = csv_to_matrix(address, True)
+                # classical_matrix = csv_to_matrix(address, True)
+                classical_matrix = csv_to_matrix(os.path.join(cwd,os.path.basename(address)), True)
                 markovPatternAnalyse(path=address, classical_matrix=classical_matrix, length_n=length_n,
                                      length_k=length_k, log=log)
             if not recursiv:
                 break
     else:
-        classical_matrix = csv_to_matrix(mypath, True)
+        # classical_matrix = csv_to_matrix(mypath, True)
+        classical_matrix = csv_to_matrix(os.path.join(cwd, os.path.basename(mypath)), True)
 
         markovPatternAnalyse(mypath, classical_matrix, length_n=length_n, length_k=length_k, log=log)
 
@@ -532,11 +542,17 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
     :param log: if True use log scale
     :return:
     """
+    cwd = os.getcwd()
+    filename = os.path.basename(path)
     shrinkSize = length_n
     classical_matrix_shrinked = matrix_shrink_size(shrinkSize, classical_matrix)
     if (length_k == 0):
+        # plot_image(classical_matrix_shrinked,
+        #            path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
+        #            sequence_size=np.sum(classical_matrix))
+        #
         plot_image(classical_matrix_shrinked,
-                   path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
+                   os.path.join(cwd,filename) + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
                    sequence_size=np.sum(classical_matrix))
         representation_matrix = classical_matrix_shrinked
     else:
@@ -544,11 +560,16 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
                                                                       length_k=length_k)
         print(representation_matrix)
         print(classical_matrix)
+        # plot_image(representation_matrix,
+        #            path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
+        #            sequence_size=np.sum(classical_matrix))
         plot_image(representation_matrix,
-                   path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
+                   os.path.join(cwd, filename) + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
                    sequence_size=np.sum(classical_matrix))
+    # sorting(representation_matrix, shrinkSize,
+    #         path[:-4] + "_k" + str(length_k) + "_n" + str(shrinkSize), False, log=log)
     sorting(representation_matrix, shrinkSize,
-            path[:-4] + "_k" + str(length_k) + "_n" + str(shrinkSize), False, log=log)
+            os.path.join(cwd, filename) + "_k" + str(length_k) + "_n" + str(shrinkSize), False, log=log)
 
 
 def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False):
@@ -560,6 +581,7 @@ def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False):
     :return:
     """
     global data
+    cwd = os.getcwd()
     if (os.path.isdir(mypath)):
         for root, dirs, files in os.walk(mypath):
             print(root)
@@ -569,13 +591,15 @@ def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False):
                 address = str(os.path.join(root, filename))
                 data = address
                 matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats)
-                matrix_to_csv(matrix, address)
+                # matrix_to_csv(matrix, address)
+                matrix_to_csv(matrix, os.path.join(cwd, filename))
             if not recursiv:
                 break
     elif (os.path.isfile(mypath)):
         data = mypath
         matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats)
-        matrix_to_csv(matrix, mypath)
+        # matrix_to_csv(matrix, mypath)
+        matrix_to_csv(matrix, os.path.join(cwd,os.path.basename(mypath)))
     else:
         print("no file or directory!")
         print("change the path.")

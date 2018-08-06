@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='MarkovPatternTool',
-    version='0.1',
+    version='0.2',
     author='Florian Mock',
     py_modules=['cli','FractalMatrix'],
     packages=find_packages(),
