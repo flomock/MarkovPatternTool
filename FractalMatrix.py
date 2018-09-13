@@ -717,7 +717,7 @@ def find_microsats(dnaSeq, min_hits=10, max_len_tuple=5):
     return microsats
 
 
-def del_microsats(dnaSeq, min_hits=5, max_len_tuple=5):
+def del_microsats(dnaSeq, min_hits=5, max_len_tuple=4):
     """
     1. get positions of microsatellites
     2. delete satellites
