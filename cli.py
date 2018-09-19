@@ -9,6 +9,7 @@ import os
 
 @click.command()
 @click.option('--path', '-p', required=True, help='Path to fasta, csv, or directory with multiple files.')
+@click.option('--threads', '-t', default=str(0), help='Number of threads to use, default equal to number of CPU cores.')
 @click.option('--n_length', '-n', default=str(5), help='Length of the resulting word.')
 @click.option('--k_length', '-k', default=str(2), help='Length of the analyzed tuples.')
 @click.option('--fasta', '-f', is_flag=True, help='Necessary if path contains fasta-file which should be used.')
@@ -16,11 +17,11 @@ import os
 @click.option('--log', is_flag=True,
               help='Returns fold results with log scale. Easier interpretation of over-,under- occurrence.')
 @click.option('--filter', is_flag=True, help='Filter out microsatellites')
-@click.version_option(version=0.2, prog_name="Markov Pattern Tool")
+@click.version_option(version=0.25, prog_name="Markov Pattern Tool")
 # @click.option('--sat_length', default=str(5), help='Maximum length microsatellite tuple.')
 # @click.option('--sat_count', default=str(10), help='Minimum number repetitions microsatellite tuple.')
 
-def cli(path, n_length, k_length, fasta, recursiv, log, filter):
+def cli(path, threads, n_length, k_length, fasta, recursiv, log, filter):
     '''
     Example:
 
@@ -53,9 +54,9 @@ def cli(path, n_length, k_length, fasta, recursiv, log, filter):
 
     if fasta:
         if (n_stop > 8):
-            FractalMatrix.path_to_fastaFiles(path, recursiv, n=n_stop, filter_mikroSats=filter)
+            FractalMatrix.path_to_fastaFiles(path, recursiv, n=n_stop, filter_mikroSats=filter, threads=threads)
         else:
-            FractalMatrix.path_to_fastaFiles(path, recursiv, filter_mikroSats=filter)
+            FractalMatrix.path_to_fastaFiles(path, recursiv, filter_mikroSats=filter, threads=int(threads))
         if os.path.isfile(path):
             path = path + ".csv"
     for n in range(n_start, n_stop + 1):
@@ -64,5 +65,4 @@ def cli(path, n_length, k_length, fasta, recursiv, log, filter):
                 break
             FractalMatrix.path_to_markovPatternAnalyse(path, n, k, recursiv,log)
 
-# cli(path="/home/go96bix/Dropbox/hiwiManja/Fraktale/FractalDNA/dinuShuffle.fa",n_length="5",k_length="2",fasta=True,recursiv=False,log=False,filter=True)
 # cli()

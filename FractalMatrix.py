@@ -62,7 +62,7 @@ def buildMatrix(size):
     return matrix
 
 
-def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
+def readDNA(path, endsize, subseq=False, filter_mikroSats=False, threads=0):
     """
     1. read the input file
     2. prepare big matrix and parsed sequence
@@ -106,21 +106,31 @@ def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
     else:
         subseqs_DNA = re.split(r"[^ACGT]+", subseq)
 
-    numCPUs = multiprocessing.cpu_count()
+    if threads:
+        numCPUs = threads
+    else:
+        numCPUs = multiprocessing.cpu_count()
     pool = Pool(numCPUs)
     if filter_mikroSats:
         subseqs_DNA = pool.map(del_microsats, subseqs_DNA)
         subseqs_DNA = [x for y in subseqs_DNA for x in y]
 
-    # print(''.join(subseqs_DNA))
-    # exit()
-
-    x_bins, y_bins, z_bins = [], [], []
+    # parallel one hot encoding the sequence
+    # x_bins, y_bins, z_bins = [], [], []
+    input_seqs = []
     for seq in subseqs_DNA:
-        x_binary, y_binary, z_binary = one_hot_encoding(seq)
-        x_bins.append(x_binary)
-        y_bins.append(y_binary)
-        z_bins.append(z_binary)
+        if len(seq)==0:
+            continue
+        input_seqs.append(seq)
+
+    binary = pool.map(one_hot_encoding, input_seqs)
+    # for tuple in binary:
+    #     x_bins.append(tuple[0])
+    #     y_bins.append(tuple[1])
+    #     z_bins.append(tuple[2])
+
+    # also possible, equal to for loop above
+    x_bins, y_bins, z_bins = [i for i in zip(*binary)]
 
     input_bins = []
     for cpu in range(numCPUs):
@@ -130,6 +140,8 @@ def readDNA(path, endsize, subseq=False, filter_mikroSats=False):
         input_bins[index % numCPUs].append([y_bins[i], z_bins[i]])
 
     matrix_list = pool.starmap(countTuple, zip(input_bins, repeat(endsize)))
+    pool.close()
+    pool.join()
 
     matrix = np.sum(matrix_list, axis=0)
     totalLength = np.sum(matrix)
@@ -525,12 +537,12 @@ def path_to_markovPatternAnalyse(mypath, length_n, length_k, recursiv, log):
                                      length_k=length_k, log=log)
             if not recursiv:
                 break
-    else:
-        # classical_matrix = csv_to_matrix(mypath, True)
-        classical_matrix = csv_to_matrix(os.path.join(cwd, os.path.basename(mypath)), True)
-
+    elif (os.path.isfile(mypath)):
+        classical_matrix = csv_to_matrix(mypath, True)
         markovPatternAnalyse(mypath, classical_matrix, length_n=length_n, length_k=length_k, log=log)
-
+    else:
+        classical_matrix = csv_to_matrix(os.path.join(cwd, os.path.basename(mypath)), True)
+        markovPatternAnalyse(os.path.join(cwd, os.path.basename(mypath)), classical_matrix, length_n=length_n, length_k=length_k, log=log)
 
 def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
     """
@@ -546,6 +558,11 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
     filename = os.path.basename(path)
     shrinkSize = length_n
     classical_matrix_shrinked = matrix_shrink_size(shrinkSize, classical_matrix)
+    # plot matrix
+    plot_image(classical_matrix_shrinked,
+               os.path.join(cwd, filename) + "_k-mer-length" + str(length_n),
+               sequence_size=np.sum(classical_matrix))
+
     if (length_k == 0):
         # plot_image(classical_matrix_shrinked,
         #            path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
@@ -558,8 +575,8 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
     else:
         representation_matrix = csv_representation_level_markov_chain(classical_matrix_shrinked,
                                                                       length_k=length_k)
-        print(representation_matrix)
-        print(classical_matrix)
+        # print(representation_matrix)
+        # print(classical_matrix)
         # plot_image(representation_matrix,
         #            path[:-4] + "_k" + str(length_k) + "_markov-chain-approx_n" + str(shrinkSize),
         #            sequence_size=np.sum(classical_matrix))
@@ -572,7 +589,7 @@ def markovPatternAnalyse(path, classical_matrix, length_n, length_k, log):
             os.path.join(cwd, filename) + "_k" + str(length_k) + "_n" + str(shrinkSize), False, log=log)
 
 
-def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False):
+def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False, threads=0):
     """
     parse multiple fasta files to csv
     :param mypath: path to fasta files
@@ -590,14 +607,14 @@ def path_to_fastaFiles(mypath, recursiv, n=8, filter_mikroSats=False):
                 print(filename)
                 address = str(os.path.join(root, filename))
                 data = address
-                matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats)
+                matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats, threads=threads)
                 # matrix_to_csv(matrix, address)
                 matrix_to_csv(matrix, os.path.join(cwd, filename))
             if not recursiv:
                 break
     elif (os.path.isfile(mypath)):
         data = mypath
-        matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats)
+        matrix = readDNA(data, n, subseq=False, filter_mikroSats=filter_mikroSats, threads=threads)
         # matrix_to_csv(matrix, mypath)
         matrix_to_csv(matrix, os.path.join(cwd,os.path.basename(mypath)))
     else:
